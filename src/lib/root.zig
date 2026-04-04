@@ -1,12 +1,18 @@
-//! By convention, root.zig is the root source file when making a library.
+//! Hehe snek :)
 const std = @import("std");
 const sdl = @import("sdl3");
+const state = @import("state.zig");
 
+const data_path = "data.txt";
 const max_fps = 60;
 const window_width = 720;
 const window_height = 480;
 
 pub fn run() !void {
+    std.log.info("Game Starting up!", .{});
+
+    try state.read_data(data_path);
+
     defer sdl.shutdown();
 
     const init_flags = sdl.InitFlags{ .video = true };
@@ -30,10 +36,12 @@ pub fn run() !void {
         while (sdl.events.poll()) |event|
             switch (event) {
                 .quit, .terminating => quit = true,
-                // .terminating => quit = true,
                 else => {},
             };
     }
 
-    std.log.info("Game Starting up!", .{});
+    std.debug.print("Highscore: {d}\n", .{state.Global.highscore});
+    std.debug.print("Deaths: {d}\n", .{state.Global.deaths});
+
+    try state.save_data(data_path);
 }
