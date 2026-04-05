@@ -40,8 +40,8 @@ pub fn run() !void {
             };
     }
 
-    std.debug.print("Highscore: {d}\n", .{state.Global.highscore});
-    std.debug.print("Deaths: {d}\n", .{state.Global.deaths});
+    // std.debug.print("Highscore: {d}\n", .{state.Global.highscore});
+    // std.debug.print("Deaths: {d}\n", .{state.Global.deaths});
 
     try state.save_data(data_path);
 }
