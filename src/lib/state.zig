@@ -3,7 +3,10 @@
 const std = @import("std");
 const fs = std.fs;
 
-const Data = struct { highscore: u32, deaths: u32 };
+const Data = struct {
+    highscore: u32,
+    deaths: u32,
+};
 
 pub var Global: Data = .{
     .highscore = 0,
@@ -14,6 +17,8 @@ pub fn read_data(p_Path: []const u8) !void {
     var buf: [256]u8 = undefined;
     const working_dir = try fs.getAppDataDir(std.heap.page_allocator, "snek");
     const path = try std.fmt.bufPrint(&buf, "{s}/{s}", .{ working_dir, p_Path });
+
+    defer std.heap.page_allocator.free(working_dir);
 
     // std.debug.print("{s}\n", .{path});
 
@@ -43,7 +48,12 @@ pub fn save_data(p_Path: []const u8) !void {
     const working_dir = try fs.getAppDataDir(std.heap.page_allocator, "snek");
     const path = try std.fmt.bufPrint(&buf, "{s}/{s}", .{ working_dir, p_Path });
 
-    try fs.makeDirAbsolute(working_dir);
+    defer std.heap.page_allocator.free(working_dir);
+
+    fs.makeDirAbsolute(working_dir) catch |err| switch (err) {
+        error.PathAlreadyExists => {}, // all good :)
+        else => return err,
+    };
 
     const file = try fs.createFileAbsolute(path, .{ .read = true });
     defer file.close();
