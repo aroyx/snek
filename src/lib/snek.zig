@@ -6,8 +6,6 @@ const Direction = enum { North, South, East, West };
 const vec2 = struct { x: f32, y: f32 };
 const Snake = struct { Pos: vec2, Score: u32, Dir: Direction };
 
-var it: f32 = 0.0; // this variable goes from 0..1 every 1 second (see update(dt: f32) function)
-
 const win_dim = 720;
 const gap = 40;
 const width = 2;
@@ -21,6 +19,9 @@ pub var snek: Snake = .{
     .Dir = Direction.East,
 };
 
+var requested_dir: Direction = Direction.East;
+var dir_change = false;
+
 pub fn run(window: *const sdl.video.Window) !void {
     var fps_capper = sdl.extras.FramerateCapper(f32){ .mode = .{ .limited = max_fps } };
 
@@ -32,10 +33,22 @@ pub fn run(window: *const sdl.video.Window) !void {
             switch (event) {
                 .quit, .terminating => quit = true,
                 .key_down => |key| if (key.scancode) |scancode| switch (scancode) {
-                    .right => snek.Dir = Direction.East,
-                    .left => snek.Dir = Direction.West,
-                    .up => snek.Dir = Direction.North,
-                    .down => snek.Dir = Direction.South,
+                    .right => {
+                        requested_dir = Direction.East;
+                        dir_change = true;
+                    },
+                    .left => {
+                        requested_dir = Direction.West;
+                        dir_change = true;
+                    },
+                    .up => {
+                        requested_dir = Direction.North;
+                        dir_change = true;
+                    },
+                    .down => {
+                        requested_dir = Direction.South;
+                        dir_change = true;
+                    },
                     else => {},
                 },
                 else => {},
@@ -87,15 +100,36 @@ fn draw_grid(window: *const sdl.video.Window) !void {
         };
         try surface.fillRect(recth, grid_colour);
 
-       row += gap;
+        row += gap;
     }
 }
 
 fn update(dt: f32) void {
-    it += dt * 60;
-    it = @mod(it, 1);
-
     const factor = dt * 60.0 * 4.0;
+
+    if (dir_change) {
+        const grid_size = 40.0;
+        const tolerance = 4.0;
+
+        if (requested_dir == Direction.East or requested_dir == Direction.West) {
+            const rem_y = @mod(snek.Pos.y, grid_size);
+
+            if (rem_y < tolerance or rem_y > grid_size - tolerance) {
+                dir_change = false;
+                snek.Dir = requested_dir;
+                snek.Pos.y = @round(snek.Pos.y / grid_size) * grid_size + (width / 2);
+            }
+        } else if (requested_dir == Direction.North or requested_dir == Direction.South) {
+            const rem_x = @mod(snek.Pos.x, grid_size);
+
+            if (rem_x < tolerance or rem_x > grid_size - tolerance) {
+                dir_change = false;
+                snek.Dir = requested_dir;
+                snek.Pos.x = @round(snek.Pos.x / grid_size) * grid_size + (width / 2);
+            }
+        }
+    }
+
     switch (snek.Dir) {
         .East => snek.Pos.x += factor,
         .West => snek.Pos.x -= factor,
@@ -103,12 +137,6 @@ fn update(dt: f32) void {
         .South => snek.Pos.y += factor,
     }
 
-    // logic to keep the snek grid-locked
-    if (snek.Dir == Direction.East or snek.Dir == Direction.West) {
-        snek.Pos.y = (@divTrunc(snek.Pos.y, 40) * 40) + (width / 2);
-    } else if (snek.Dir == Direction.North or snek.Dir == Direction.South) {
-        snek.Pos.x = (@divTrunc(snek.Pos.x, 40) * 40) + (width / 2);
-    }
-
     // todo: wrap the snek around the window
 }
+
