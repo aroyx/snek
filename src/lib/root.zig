@@ -7,8 +7,6 @@ const snek = @import("snek.zig");
 const data_path = "data.txt";
 
 pub fn run() !void {
-    std.log.info("Game Starting up!", .{});
-
     try state.read_data(data_path);
 
     defer sdl.shutdown();
@@ -25,8 +23,14 @@ pub fn run() !void {
 
     try snek.run(&window);
 
-    // std.debug.print("Highscore: {d}\n", .{state.Global.highscore});
-    // std.debug.print("Deaths: {d}\n", .{state.Global.deaths});
+    // update data
+    state.Global.deaths += 1;
+    if (snek.snek.Score > state.Global.highscore) {
+        state.Global.highscore = snek.snek.Score;
+    }
+
+    std.log.info("Highscore: {d}", .{state.Global.highscore});
+    std.log.info("Deaths: {d}\n", .{state.Global.deaths});
 
     try state.save_data(data_path);
 }

@@ -8,7 +8,11 @@ const Snake = struct { Pos: vec2, Score: u32, Dir: Direction };
 
 var it: f32 = 0.0; // this variable goes from 0..1 every 1 second (see update(dt: f32) function)
 
-var snek: Snake = .{
+const win_dim = 720;
+const gap = 40;
+const width = 2;
+
+pub var snek: Snake = .{
     .Pos = .{
         .x = 0,
         .y = 0,
@@ -52,8 +56,8 @@ fn draw(window: *const sdl.video.Window) !void {
     const rect: sdl.rect.IRect = .{
         .x = @intFromFloat(snek.Pos.x),
         .y = @intFromFloat(snek.Pos.y),
-        .h = 32.0,
-        .w = 32.0,
+        .h = 38.0,
+        .w = 38.0,
     };
     try surface.fillRect(rect, surface.mapRgb(255, 25, 40));
 
@@ -62,11 +66,8 @@ fn draw(window: *const sdl.video.Window) !void {
 
 fn draw_grid(window: *const sdl.video.Window) !void {
     const surface = try window.getSurface();
-    const win_dim = 720;
 
     var row: i32 = 0;
-    const gap = 40;
-    const width = 2;
     const grid_colour = surface.mapRgb(255, 255, 255);
 
     while (row <= win_dim) {
@@ -86,7 +87,7 @@ fn draw_grid(window: *const sdl.video.Window) !void {
         };
         try surface.fillRect(recth, grid_colour);
 
-        row += gap;
+       row += gap;
     }
 }
 
@@ -101,4 +102,13 @@ fn update(dt: f32) void {
         .North => snek.Pos.y -= factor,
         .South => snek.Pos.y += factor,
     }
+
+    // logic to keep the snek grid-locked
+    if (snek.Dir == Direction.East or snek.Dir == Direction.West) {
+        snek.Pos.y = (@divTrunc(snek.Pos.y, 40) * 40) + (width / 2);
+    } else if (snek.Dir == Direction.North or snek.Dir == Direction.South) {
+        snek.Pos.x = (@divTrunc(snek.Pos.x, 40) * 40) + (width / 2);
+    }
+
+    // todo: wrap the snek around the window
 }
