@@ -29,8 +29,9 @@ pub fn run() !void {
         state.Global.highscore = snek.snek.Score;
     }
 
+    std.log.info("Score: {d}", .{snek.snek.Score});
     std.log.info("Highscore: {d}", .{state.Global.highscore});
-    std.log.info("Deaths: {d}\n", .{state.Global.deaths});
+    std.log.info("Deaths: {d}", .{state.Global.deaths});
 
     try state.save_data(data_path);
 }

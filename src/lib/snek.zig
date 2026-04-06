@@ -1,5 +1,6 @@
 const sdl = @import("sdl3");
 const std = @import("std");
+const state = @import("state.zig");
 const max_fps = 60;
 
 const Direction = enum { North, South, East, West };
@@ -7,7 +8,7 @@ const vec2 = struct { x: f32, y: f32 };
 const Snake = struct { Pos: vec2, Score: u32, Dir: Direction };
 
 const win_dim = 720;
-const gap = 40;
+const grid_size = 40.0;
 const width = 2;
 
 pub var snek: Snake = .{
@@ -26,9 +27,17 @@ var food: vec2 = .{
 
 var requested_dir: Direction = Direction.East;
 var dir_change = false;
+var rand: std.Random = undefined;
 
 pub fn run(window: *const sdl.video.Window) !void {
     var fps_capper = sdl.extras.FramerateCapper(f32){ .mode = .{ .limited = max_fps } };
+
+    var prng: std.Random.DefaultPrng = .init(blk: {
+        var seed: u64 = undefined;
+        try std.posix.getrandom(std.mem.asBytes(&seed));
+        break :blk seed;
+    });
+    rand = prng.random();
 
     try drop_the_food();
     var quit = false;
@@ -40,30 +49,35 @@ pub fn run(window: *const sdl.video.Window) !void {
                 .quit, .terminating => quit = true,
                 .key_down => |key| if (key.scancode) |scancode| switch (scancode) {
                     .right => {
-                        requested_dir = Direction.East;
-                        dir_change = true;
+                        if (snek.Dir != Direction.West) {
+                            requested_dir = Direction.East;
+                            dir_change = true;
+                        }
                     },
                     .left => {
-                        requested_dir = Direction.West;
-                        dir_change = true;
+                        if (snek.Dir != Direction.East) {
+                            requested_dir = Direction.West;
+                            dir_change = true;
+                        }
                     },
                     .up => {
-                        requested_dir = Direction.North;
-                        dir_change = true;
+                        if (snek.Dir != Direction.South) {
+                            requested_dir = Direction.North;
+                            dir_change = true;
+                        }
                     },
                     .down => {
-                        requested_dir = Direction.South;
-                        dir_change = true;
-                    },
-                    .d => {
-                        try drop_the_food();
+                        if (snek.Dir != Direction.North) {
+                            requested_dir = Direction.South;
+                            dir_change = true;
+                        }
                     },
                     else => {},
                 },
                 else => {},
             };
 
-        update(dt);
+        try update(dt);
         try draw(window);
     }
 }
@@ -75,11 +89,14 @@ fn draw(window: *const sdl.video.Window) !void {
     try draw_grid(window);
 
     // draw food
+    const food_wid = 30.0;
+    const food_x = food.x + (grid_size - food_wid) / 2.0;
+    const food_y = food.y + (grid_size - food_wid) / 2.0;
     const rect_food: sdl.rect.IRect = .{
-        .x = @intFromFloat(food.x),
-        .y = @intFromFloat(food.y),
-        .h = 36.0,
-        .w = 36.0,
+        .x = @intFromFloat(food_x),
+        .y = @intFromFloat(food_y),
+        .h = food_wid,
+        .w = food_wid,
     };
     try surface.fillRect(rect_food, surface.mapRgb(255, 25, 40));
 
@@ -118,15 +135,12 @@ fn draw_grid(window: *const sdl.video.Window) !void {
         };
         try surface.fillRect(recth, grid_colour);
 
-        row += gap;
+        row += grid_size;
     }
 }
 
-fn update(dt: f32) void {
-    const factor = dt * 60.0 * 4.0;
-
+fn update(dt: f32) !void {
     if (dir_change) {
-        const grid_size = 40.0;
         const tolerance = 4.0;
 
         if (requested_dir == Direction.East or requested_dir == Direction.West) {
@@ -148,6 +162,7 @@ fn update(dt: f32) void {
         }
     }
 
+    const factor = dt * 60.0 * 4.0;
     switch (snek.Dir) {
         .East => snek.Pos.x += factor,
         .West => snek.Pos.x -= factor,
@@ -155,17 +170,21 @@ fn update(dt: f32) void {
         .South => snek.Pos.y += factor,
     }
 
+    // snek ate the food.
+    const margin = 10.0;
+    if (snek.Pos.x < food.x + grid_size - margin and
+        snek.Pos.x + grid_size > food.x + margin and
+        snek.Pos.y < food.y + grid_size - margin and
+        snek.Pos.y + grid_size > food.y + margin)
+    {
+        try drop_the_food();
+        snek.Score += 1;
+    }
+
     // todo: wrap the snek around the window
 }
 
 fn drop_the_food() !void {
-    var prng: std.Random.DefaultPrng = .init(blk: {
-        var seed: u64 = undefined;
-        try std.posix.getrandom(std.mem.asBytes(&seed));
-        break :blk seed;
-    });
-    const rand = prng.random();
-
     const win_size = 720.0;
     const rand_x = rand.float(f32);
     const rand_y = rand.float(f32);
@@ -173,7 +192,6 @@ fn drop_the_food() !void {
     const x = rand_x * win_size;
     const y = rand_y * win_size;
 
-    const grid_size = 40.0;
-    food.x = @round(x / grid_size) * grid_size + width;
-    food.y = @round(y / grid_size) * grid_size + width;
+    food.x = @floor(x / grid_size) * grid_size;
+    food.y = @floor(y / grid_size) * grid_size;
 }
