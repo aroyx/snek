@@ -42,6 +42,7 @@ pub fn update(dt: f32) !void {
     {
         try drop_the_food();
         state.snek.Score += 1;
+        state.snek.TailLength += 1;
     }
 
     // snek hit bounds

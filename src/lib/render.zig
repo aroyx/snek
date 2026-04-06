@@ -4,7 +4,7 @@ const state = @import("state.zig");
 
 pub fn draw(window: *const sdl.video.Window) !void {
     const surface = try window.getSurface();
-    try surface.fillRect(null, surface.mapRgb(90, 150, 230));
+    try surface.fillRect(null, surface.mapRgb(100, 255, 80));
 
     try draw_grid(window);
 
@@ -27,9 +27,9 @@ pub fn draw(window: *const sdl.video.Window) !void {
         .h = 38.0,
         .w = 38.0,
     };
-    try surface.fillRect(rect, surface.mapRgb(100, 255, 80));
+    try surface.fillRect(rect, surface.mapRgb(91, 123, 249));
 
-    // try draw_tails(window);
+    try draw_tails(window);
 
     try window.updateSurface();
 }
@@ -61,33 +61,26 @@ fn draw_grid(window: *const sdl.video.Window) !void {
     }
 }
 
-// fn draw_tails(window: *const sdl.video.Window) !void {
-//     const surface = try window.getSurface();
-//     const tl = state.snek.TailLength;
-//     const body = &state.snek.Body;
-//
-//     const renderer = try sdl.render.getRenderer(window);
-//     renderer.setDrawColor(.{ .a = 255, .r = 100, .g = 255, .b = 80 });
-//
-//     var i: u32 = 0;
-//     while (i < tl - 1) {
-//         const rect: sdl.rect.IRect = .{
-//             .x = body[i].Pos.x,
-//             .y = body[i].Pos.y,
-//             .h = 40,
-//             .w = 40,
-//         };
-//
-//         try surface.fillRect(rect, surface.mapRgb(100, 255, 80));
-//         i += 1;
-//     }
-//
-//     const rect: sdl.rect.IRect = .{
-//         .x = body[tl].Pos.x,
-//         .y = body[tl].Pos.y,
-//         .h = 40,
-//         .w = 40,
-//     };
-//
-//     try surface.fillRect(rect, surface.mapRgb(100, 255, 80));
-// }
+fn draw_tails(window: *const sdl.video.Window) !void {
+    const surface = try window.getSurface();
+    const tl = state.snek.TailLength;
+    const path = &state.snek.Path;
+    const tail_colour = surface.mapRgb(100, 143, 249);
+    var i: u8 = state.path_index -% 2;
+    var segments_drawn: u8 = 0;
+
+    while (segments_drawn < tl) : (segments_drawn += 1) {
+        const node = path[i];
+
+        const rect: sdl.rect.IRect = .{
+            .x = @intFromFloat(node.Pos.x),
+            .y = @intFromFloat(node.Pos.y),
+            .h = 38,
+            .w = 38,
+        };
+
+        try surface.fillRect(rect, tail_colour);
+
+        i = i -% 1;
+    }
+}
