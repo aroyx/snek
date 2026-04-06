@@ -19,12 +19,18 @@ pub var snek: Snake = .{
     .Dir = Direction.East,
 };
 
+var food: vec2 = .{
+    .x = 0,
+    .y = 0,
+};
+
 var requested_dir: Direction = Direction.East;
 var dir_change = false;
 
 pub fn run(window: *const sdl.video.Window) !void {
     var fps_capper = sdl.extras.FramerateCapper(f32){ .mode = .{ .limited = max_fps } };
 
+    try drop_the_food();
     var quit = false;
     while (!quit) {
         const dt = fps_capper.delay();
@@ -49,6 +55,9 @@ pub fn run(window: *const sdl.video.Window) !void {
                         requested_dir = Direction.South;
                         dir_change = true;
                     },
+                    .d => {
+                        try drop_the_food();
+                    },
                     else => {},
                 },
                 else => {},
@@ -65,6 +74,15 @@ fn draw(window: *const sdl.video.Window) !void {
 
     try draw_grid(window);
 
+    // draw food
+    const rect_food: sdl.rect.IRect = .{
+        .x = @intFromFloat(food.x),
+        .y = @intFromFloat(food.y),
+        .h = 36.0,
+        .w = 36.0,
+    };
+    try surface.fillRect(rect_food, surface.mapRgb(255, 25, 40));
+
     // draw snake
     const rect: sdl.rect.IRect = .{
         .x = @intFromFloat(snek.Pos.x),
@@ -72,7 +90,7 @@ fn draw(window: *const sdl.video.Window) !void {
         .h = 38.0,
         .w = 38.0,
     };
-    try surface.fillRect(rect, surface.mapRgb(255, 25, 40));
+    try surface.fillRect(rect, surface.mapRgb(100, 255, 80));
 
     try window.updateSurface();
 }
@@ -140,3 +158,22 @@ fn update(dt: f32) void {
     // todo: wrap the snek around the window
 }
 
+fn drop_the_food() !void {
+    var prng: std.Random.DefaultPrng = .init(blk: {
+        var seed: u64 = undefined;
+        try std.posix.getrandom(std.mem.asBytes(&seed));
+        break :blk seed;
+    });
+    const rand = prng.random();
+
+    const win_size = 720.0;
+    const rand_x = rand.float(f32);
+    const rand_y = rand.float(f32);
+
+    const x = rand_x * win_size;
+    const y = rand_y * win_size;
+
+    const grid_size = 40.0;
+    food.x = @round(x / grid_size) * grid_size + width;
+    food.y = @round(y / grid_size) * grid_size + width;
+}
