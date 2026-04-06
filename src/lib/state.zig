@@ -11,9 +11,11 @@ pub var snek: types.Snake = .{
     },
     .Score = 0,
     .Dir = types.Direction.East,
+    .TailLength = 0,
+    .Path = undefined,
 };
 
-pub var food: types.vec2 = .{
+pub var food: types.Vec2 = .{
     .x = 0,
     .y = 0,
 };
@@ -22,6 +24,7 @@ pub var requested_dir: types.Direction = types.Direction.East;
 pub var dir_change = false;
 pub var rand: std.Random = undefined;
 pub var quit: bool = false;
+pub var path_index: u8 = 0;
 
 const Data = struct {
     highscore: u32,

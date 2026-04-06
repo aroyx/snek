@@ -29,6 +29,8 @@ pub fn draw(window: *const sdl.video.Window) !void {
     };
     try surface.fillRect(rect, surface.mapRgb(100, 255, 80));
 
+    // try draw_tails(window);
+
     try window.updateSurface();
 }
 
@@ -58,3 +60,34 @@ fn draw_grid(window: *const sdl.video.Window) !void {
         row += types.grid_size;
     }
 }
+
+// fn draw_tails(window: *const sdl.video.Window) !void {
+//     const surface = try window.getSurface();
+//     const tl = state.snek.TailLength;
+//     const body = &state.snek.Body;
+//
+//     const renderer = try sdl.render.getRenderer(window);
+//     renderer.setDrawColor(.{ .a = 255, .r = 100, .g = 255, .b = 80 });
+//
+//     var i: u32 = 0;
+//     while (i < tl - 1) {
+//         const rect: sdl.rect.IRect = .{
+//             .x = body[i].Pos.x,
+//             .y = body[i].Pos.y,
+//             .h = 40,
+//             .w = 40,
+//         };
+//
+//         try surface.fillRect(rect, surface.mapRgb(100, 255, 80));
+//         i += 1;
+//     }
+//
+//     const rect: sdl.rect.IRect = .{
+//         .x = body[tl].Pos.x,
+//         .y = body[tl].Pos.y,
+//         .h = 40,
+//         .w = 40,
+//     };
+//
+//     try surface.fillRect(rect, surface.mapRgb(100, 255, 80));
+// }
