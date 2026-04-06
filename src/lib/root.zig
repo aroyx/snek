@@ -1,6 +1,7 @@
 //! Hehe snek :)
 const std = @import("std");
 const sdl = @import("sdl3");
+
 const state = @import("state.zig");
 const snek = @import("snek.zig");
 
@@ -25,11 +26,11 @@ pub fn run() !void {
 
     // update data
     state.Global.deaths += 1;
-    if (snek.snek.Score > state.Global.highscore) {
-        state.Global.highscore = snek.snek.Score;
+    if (state.snek.Score > state.Global.highscore) {
+        state.Global.highscore = state.snek.Score;
     }
 
-    std.log.info("Score: {d}", .{snek.snek.Score});
+    std.log.info("Score: {d}", .{state.snek.Score});
     std.log.info("Highscore: {d}", .{state.Global.highscore});
     std.log.info("Deaths: {d}", .{state.Global.deaths});
 

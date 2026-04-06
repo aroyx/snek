@@ -1,7 +1,27 @@
 //! This file stores the global state of the project!
 
 const std = @import("std");
+const types = @import("types.zig");
 const fs = std.fs;
+
+pub var snek: types.Snake = .{
+    .Pos = .{
+        .x = 0,
+        .y = 0,
+    },
+    .Score = 0,
+    .Dir = types.Direction.East,
+};
+
+pub var food: types.vec2 = .{
+    .x = 0,
+    .y = 0,
+};
+
+pub var requested_dir: types.Direction = types.Direction.East;
+pub var dir_change = false;
+pub var rand: std.Random = undefined;
+pub var quit: bool = false;
 
 const Data = struct {
     highscore: u32,
@@ -66,3 +86,5 @@ pub fn save_data(p_Path: []const u8) !void {
     try writer.print("{d}\n", .{Global.deaths});
     try writer.flush();
 }
+
+
