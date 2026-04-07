@@ -38,10 +38,14 @@ pub var Global: Data = .{
 
 pub fn read_data(p_Path: []const u8) !void {
     var buf: [256]u8 = undefined;
-    const working_dir = try fs.getAppDataDir(std.heap.page_allocator, "snek");
-    const path = try std.fmt.bufPrint(&buf, "{s}/{s}", .{ working_dir, p_Path });
+    var buf2: [256]u8 = undefined;
+    var fba: std.heap.FixedBufferAllocator = .init(&buf);
+    const allocator = fba.allocator();
 
-    defer std.heap.page_allocator.free(working_dir);
+    const working_dir = try fs.getAppDataDir(allocator, "snek");
+    const path = try std.fmt.bufPrint(&buf2, "{s}/{s}", .{ working_dir, p_Path });
+
+    defer allocator.free(working_dir);
 
     // std.debug.print("{s}\n", .{path});
 
@@ -56,8 +60,8 @@ pub fn read_data(p_Path: []const u8) !void {
     defer file.close();
 
     // https://cookbook.ziglang.cc/01-01-read-file-line-by-line/
-    var buf2: [16]u8 = undefined;
-    var reader = file.reader(&buf2);
+    var buf3: [16]u8 = undefined;
+    var reader = file.reader(&buf3);
 
     const highscore_line = try reader.interface.takeDelimiter('\n');
     const death_line = try reader.interface.takeDelimiter('\n');
@@ -68,10 +72,13 @@ pub fn read_data(p_Path: []const u8) !void {
 
 pub fn save_data(p_Path: []const u8) !void {
     var buf: [256]u8 = undefined;
-    const working_dir = try fs.getAppDataDir(std.heap.page_allocator, "snek");
-    const path = try std.fmt.bufPrint(&buf, "{s}/{s}", .{ working_dir, p_Path });
+    var buf2: [256]u8 = undefined;
+    var fba: std.heap.FixedBufferAllocator = .init(&buf);
+    const allocator = fba.allocator();
+    const working_dir = try fs.getAppDataDir(allocator, "snek");
+    const path = try std.fmt.bufPrint(&buf2, "{s}/{s}", .{ working_dir, p_Path });
 
-    defer std.heap.page_allocator.free(working_dir);
+    defer allocator.free(working_dir);
 
     fs.makeDirAbsolute(working_dir) catch |err| switch (err) {
         error.PathAlreadyExists => {}, // all good :)
