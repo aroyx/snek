@@ -74,8 +74,8 @@ var last_recorded_x: f32 = -100.0;
 var last_recorded_y: f32 = -100.0;
 
 fn record_path() !void {
-    const current_grid_x = @floor(state.snek.Pos.x / types.grid_size) * types.grid_size;
-    const current_grid_y = @floor(state.snek.Pos.y / types.grid_size) * types.grid_size;
+    const current_grid_x = @floor((state.snek.Pos.x + (types.grid_size / 2)) / types.grid_size) * types.grid_size;
+    const current_grid_y = @floor((state.snek.Pos.y + (types.grid_size / 2)) / types.grid_size) * types.grid_size;
 
     if (current_grid_x != last_recorded_x or current_grid_y != last_recorded_y) {
         last_recorded_x = current_grid_x;
