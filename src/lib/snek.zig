@@ -6,7 +6,7 @@ const state = @import("state.zig");
 const logic = @import("logic.zig");
 const render = @import("render.zig");
 
-pub fn run(window: *const sdl.video.Window) !void {
+pub fn run(renderer: *const sdl.render.Renderer) !void {
     var fps_capper = sdl.extras.FramerateCapper(f32){ .mode = .{ .limited = types.max_fps } };
 
     var prng: std.Random.DefaultPrng = .init(blk: {
@@ -54,6 +54,6 @@ pub fn run(window: *const sdl.video.Window) !void {
             };
 
         try logic.update(dt);
-        try render.draw(window);
+        try render.draw(renderer);
     }
 }

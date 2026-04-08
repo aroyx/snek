@@ -17,12 +17,13 @@ pub fn run() !void {
     defer sdl.quit(init_flags);
 
     const win_size = 720;
-    const window = try sdl.video.Window.init("Snek", win_size, win_size, .{
+    const window, const renderer = try sdl.render.Renderer.initWithWindow("Snek", win_size, win_size, .{
         .high_pixel_density = true,
     });
+    defer renderer.deinit();
     defer window.deinit();
 
-    try snek.run(&window);
+    try snek.run(&renderer);
 
     // update data
     state.Global.deaths += 1;
