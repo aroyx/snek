@@ -54,6 +54,11 @@ pub fn run(renderer: *const sdl.render.Renderer) !void {
             };
 
         try logic.update(dt);
-        try render.draw(renderer);
+
+        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+        defer _ = gpa.deinit();
+        const allocator = gpa.allocator();
+
+        try render.draw(allocator, renderer);
     }
 }

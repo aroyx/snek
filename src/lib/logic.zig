@@ -72,6 +72,7 @@ pub fn drop_the_food() !void {
 
 var last_recorded_x: f32 = -100.0;
 var last_recorded_y: f32 = -100.0;
+var last_recorded_dir: types.Direction = types.Direction.East;
 
 fn record_path() !void {
     const current_grid_x = @floor((state.snek.Pos.x + (types.grid_size / 2)) / types.grid_size) * types.grid_size;
@@ -84,9 +85,9 @@ fn record_path() !void {
         var node: types.PathNode = undefined;
         node.Pos.x = current_grid_x;
         node.Pos.y = current_grid_y;
+        node.Shape = types.SegmentShape.Vertical; // default
 
         // determine segment shape
-        var last_recorded_dir: types.Direction = types.Direction.East;
         if (last_recorded_dir == state.snek.Dir) {
             switch (state.snek.Dir) {
                 .East, .West => node.Shape = types.SegmentShape.Horizontal,
