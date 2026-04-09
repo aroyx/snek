@@ -3,6 +3,25 @@ const std = @import("std");
 const types = @import("types.zig");
 const state = @import("state.zig");
 
+var food_tex: sdl.render.Texture = undefined;
+var snek_tex: sdl.render.Texture = undefined;
+
+pub fn init_textures(renderer: *const sdl.render.Renderer) !void {
+    const food_sur = try sdl.image.loadPngIo(try .initFromFile("res/food.png", .read_binary));
+    const snek_sur = try sdl.image.loadPngIo(try .initFromFile("res/snek.png", .read_binary));
+
+    food_tex = try renderer.createTextureFromSurface(food_sur);
+    snek_tex = try renderer.createTextureFromSurface(snek_sur);
+
+    defer food_sur.deinit(); // why do I have defer here...
+    defer snek_sur.deinit();
+}
+
+pub fn deinit_textures() void {
+    _ = food_tex.deinit();
+    _ = snek_tex.deinit();
+}
+
 pub fn draw(allocator: std.mem.Allocator, renderer: *const sdl.render.Renderer) !void {
     try renderer.setDrawColor(.{ .r = 100, .g = 255, .b = 80, .a = 255 });
     try renderer.clear();
@@ -10,19 +29,14 @@ pub fn draw(allocator: std.mem.Allocator, renderer: *const sdl.render.Renderer) 
     try draw_grid(renderer);
 
     // draw food
-    const food_wid = 30.0;
-    const food_x = state.food.x + (types.grid_size - food_wid) / 2.0;
-    const food_y = state.food.y + (types.grid_size - food_wid) / 2.0;
-
     const rect_food: sdl.rect.Rect(f32) = .{
-        .x = food_x,
-        .y = food_y,
-        .h = food_wid,
-        .w = food_wid,
+        .x = state.food.x,
+        .y = state.food.y,
+        .h = types.grid_size,
+        .w = types.grid_size,
     };
 
-    try renderer.setDrawColor(.{ .r = 255, .g = 25, .b = 40, .a = 255 });
-    try renderer.renderFillRect(rect_food);
+    try renderer.renderTexture(food_tex, null, rect_food);
 
     if (state.snek.TailLength > 0) {
         try draw_tails(allocator, renderer);
@@ -32,12 +46,24 @@ pub fn draw(allocator: std.mem.Allocator, renderer: *const sdl.render.Renderer) 
     const rect: sdl.rect.Rect(f32) = .{
         .x = state.snek.Pos.x,
         .y = state.snek.Pos.y,
-        .h = 38.0,
-        .w = 38.0,
+        .h = types.grid_size,
+        .w = types.grid_size,
     };
 
-    try renderer.setDrawColor(.{ .r = 91, .g = 123, .b = 249, .a = 255 });
-    try renderer.renderFillRect(rect);
+    switch (state.snek.Dir) {
+        .East => {
+            try renderer.renderTextureRotated(snek_tex, null, rect, 90.0, null, .{});
+        },
+        .West => {
+            try renderer.renderTextureRotated(snek_tex, null, rect, 270.0, null, .{});
+        },
+        .North => {
+            try renderer.renderTexture(snek_tex, null, rect);
+        },
+        .South => {
+            try renderer.renderTextureRotated(snek_tex, null, rect, 180.0, null, .{});
+        },
+    }
 
     try renderer.present();
 }
@@ -88,8 +114,8 @@ fn draw_tails(allocator: std.mem.Allocator, renderer: *const sdl.render.Renderer
     // while (segments_drawn < tl + 1) : (segments_drawn += 1) {
     while (segments_drawn < tl) : (segments_drawn += 1) {
         const percent_drawn = @as(f32, @floatFromInt(tl - segments_drawn)) / @as(f32, @floatFromInt(tl));
-        const min_width = types.grid_size / 2.0;
-        const max_width = types.grid_size - 1.0;
+        const min_width = types.grid_size / 3.0;
+        const max_width = types.grid_size - 4.0;
 
         snake_width = min_width + (max_width - min_width) * percent_drawn;
 

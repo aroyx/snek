@@ -16,6 +16,9 @@ pub fn run(renderer: *const sdl.render.Renderer) !void {
     });
     state.rand = prng.random();
 
+    try render.init_textures(renderer);
+    defer render.deinit_textures();
+
     try logic.drop_the_food();
     while (!state.quit) {
         const dt = fps_capper.delay();

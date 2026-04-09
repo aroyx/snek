@@ -9,7 +9,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize_options,
 
         // Lib options.
-        // .ext_image = false,
+        .ext_image = true,
         // .ext_net = false,
         // .ext_ttf = false,
         // .log_message_stack_size = 1024,
@@ -30,7 +30,7 @@ pub fn build(b: *std.Build) void {
         // .image_enable_jpg = true,
         // .image_enable_lbm = true,
         // .image_enable_pcx = true,
-        // .image_enable_png = true,
+        .image_enable_png = true,
         // .image_enable_pnm = true,
         // .image_enable_qoi = true,
         // .image_enable_svg = true,
