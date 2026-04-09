@@ -5,23 +5,50 @@ const state = @import("state.zig");
 pub fn update(dt: f32) !void {
     if (state.dir_change) {
         const tolerance = 4.0;
+        var turned = false;
 
         if (state.requested_dir == types.Direction.East or state.requested_dir == types.Direction.West) {
             const rem_y = @mod(state.snek.Pos.y, types.grid_size);
 
             if (rem_y < tolerance or rem_y > types.grid_size - tolerance) {
-                state.dir_change = false;
-                state.snek.Dir = state.requested_dir;
                 state.snek.Pos.y = @round(state.snek.Pos.y / types.grid_size) * types.grid_size + (types.width / 2);
+                turned = true;
             }
         } else if (state.requested_dir == types.Direction.North or state.requested_dir == types.Direction.South) {
             const rem_x = @mod(state.snek.Pos.x, types.grid_size);
 
             if (rem_x < tolerance or rem_x > types.grid_size - tolerance) {
-                state.dir_change = false;
-                state.snek.Dir = state.requested_dir;
                 state.snek.Pos.x = @round(state.snek.Pos.x / types.grid_size) * types.grid_size + (types.width / 2);
+                turned = true;
             }
+        }
+
+        if (turned) {
+            const last_index = state.path_index -% 1;
+            var last_node = &state.snek.Path[last_index];
+
+            // this shit is ai generated, I am not doing this shit. Not verifying either
+            if ((last_recorded_dir == .East and state.requested_dir == .North) or
+                (last_recorded_dir == .South and state.requested_dir == .West))
+            {
+                last_node.Shape = types.SegmentShape.TopLeft;
+            } else if ((last_recorded_dir == .East and state.requested_dir == .South) or
+                (last_recorded_dir == .North and state.requested_dir == .West))
+            {
+                last_node.Shape = types.SegmentShape.BottomLeft;
+            } else if ((last_recorded_dir == .West and state.requested_dir == .North) or
+                (last_recorded_dir == .South and state.requested_dir == .East))
+            {
+                last_node.Shape = types.SegmentShape.TopRight;
+            } else if ((last_recorded_dir == .West and state.requested_dir == .South) or
+                (last_recorded_dir == .North and state.requested_dir == .East))
+            {
+                last_node.Shape = types.SegmentShape.BottomRight;
+            }
+
+            state.dir_change = false;
+            state.snek.Dir = state.requested_dir;
+            last_recorded_dir = state.requested_dir;
         }
     }
 
@@ -85,34 +112,13 @@ fn record_path() !void {
         var node: types.PathNode = undefined;
         node.Pos.x = current_grid_x;
         node.Pos.y = current_grid_y;
-        node.Shape = types.SegmentShape.Vertical; // default
 
         // determine segment shape
-        if (last_recorded_dir == state.snek.Dir) {
-            switch (state.snek.Dir) {
-                .East, .West => node.Shape = types.SegmentShape.Horizontal,
-                .North, .South => node.Shape = types.SegmentShape.Vertical,
-            }
-        } else {
-            // this shit is ai generated, I am not doing this shit. Not verifying either
-            if ((last_recorded_dir == .East and state.snek.Dir == .North) or
-                (last_recorded_dir == .South and state.snek.Dir == .West))
-            {
-                node.Shape = types.SegmentShape.TopLeft;
-            } else if ((last_recorded_dir == .East and state.snek.Dir == .South) or
-                (last_recorded_dir == .North and state.snek.Dir == .West))
-            {
-                node.Shape = types.SegmentShape.BottomLeft;
-            } else if ((last_recorded_dir == .West and state.snek.Dir == .North) or
-                (last_recorded_dir == .South and state.snek.Dir == .East))
-            {
-                node.Shape = types.SegmentShape.TopRight;
-            } else if ((last_recorded_dir == .West and state.snek.Dir == .South) or
-                (last_recorded_dir == .North and state.snek.Dir == .East))
-            {
-                node.Shape = types.SegmentShape.BottomRight;
-            }
+        switch (state.snek.Dir) {
+            .East, .West => node.Shape = types.SegmentShape.Horizontal,
+            .North, .South => node.Shape = types.SegmentShape.Vertical,
         }
+
         last_recorded_dir = state.snek.Dir;
 
         state.snek.Path[state.path_index] = node;

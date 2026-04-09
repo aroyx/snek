@@ -6,12 +6,12 @@ const fs = std.fs;
 
 pub var snek: types.Snake = .{
     .Pos = .{
-        .x = 0,
-        .y = 0,
+        .x = @floor(200.0 / types.grid_size) * types.grid_size,
+        .y = @floor(100.0 / types.grid_size) * types.grid_size,
     },
     .Score = 0,
     .Dir = types.Direction.East,
-    .TailLength = 0,
+    .TailLength = 3,
     .Path = undefined,
 };
 
@@ -24,7 +24,7 @@ pub var requested_dir: types.Direction = types.Direction.East;
 pub var dir_change = false;
 pub var rand: std.Random = undefined;
 pub var quit: bool = false;
-pub var path_index: u8 = 0;
+pub var path_index: u8 = 3;
 
 const Data = struct {
     highscore: u32,
@@ -35,6 +35,22 @@ pub var Global: Data = .{
     .highscore = 0,
     .deaths = 0,
 };
+
+pub fn init() !void {
+    var node: types.PathNode = undefined;
+    node.Pos.x = @floor(160.0 / types.grid_size) * types.grid_size;
+    node.Pos.y = @floor(100.0 / types.grid_size) * types.grid_size;
+    node.Shape = types.SegmentShape.Horizontal; // default
+    snek.Path[0] = node;
+
+    node.Pos.x = @floor(120.0 / types.grid_size) * types.grid_size;
+    node.Pos.y = @floor(100.0 / types.grid_size) * types.grid_size;
+    snek.Path[1] = node;
+
+    node.Pos.x = @floor(80.0 / types.grid_size) * types.grid_size;
+    node.Pos.y = @floor(100.0 / types.grid_size) * types.grid_size;
+    snek.Path[2] = node;
+}
 
 pub fn read_data(p_Path: []const u8) !void {
     var buf: [256]u8 = undefined;
@@ -96,5 +112,3 @@ pub fn save_data(p_Path: []const u8) !void {
     try writer.print("{d}\n", .{Global.deaths});
     try writer.flush();
 }
-
-

@@ -16,6 +16,16 @@ pub fn run(renderer: *const sdl.render.Renderer) !void {
     });
     state.rand = prng.random();
 
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const gpa_allocator = gpa.allocator();
+
+    var arena = std.heap.ArenaAllocator.init(gpa_allocator);
+    defer arena.deinit();
+    const arena_allocator = arena.allocator();
+    
+    try state.init();
+
     try render.init_textures(renderer);
     defer render.deinit_textures();
 
@@ -58,10 +68,6 @@ pub fn run(renderer: *const sdl.render.Renderer) !void {
 
         try logic.update(dt);
 
-        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-        defer _ = gpa.deinit();
-        const allocator = gpa.allocator();
-
-        try render.draw(allocator, renderer);
+        try render.draw(arena_allocator, renderer);
     }
 }

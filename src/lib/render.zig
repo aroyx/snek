@@ -103,7 +103,7 @@ fn draw_tails(allocator: std.mem.Allocator, renderer: *const sdl.render.Renderer
     const tl = state.snek.TailLength;
     const path = &state.snek.Path;
 
-    var i: u8 = state.path_index -% 1;
+    var i: u8 = state.path_index -% 2;
     var segments_drawn: u8 = 0;
 
     const arc_iter = 5;
@@ -111,11 +111,53 @@ fn draw_tails(allocator: std.mem.Allocator, renderer: *const sdl.render.Renderer
     var vertices: std.ArrayList(sdl.render.Vertex) = .empty;
     defer vertices.deinit(allocator);
 
-    // while (segments_drawn < tl + 1) : (segments_drawn += 1) {
-    while (segments_drawn < tl) : (segments_drawn += 1) {
+    const sw = types.grid_size - 8.0;
+
+    switch (state.snek.Dir) {
+        .East, .West => {
+            const x = state.snek.Pos.x + (types.grid_size / 2.0);
+            const h = (types.grid_size - sw) / 2.0;
+
+            const vertex_l: sdl.render.Vertex = .{
+                .tex_coord = undefined,
+                .color = tail_colour,
+                .position = .{ .x = x, .y = state.snek.Pos.y + h },
+            };
+
+            const vertex_r: sdl.render.Vertex = .{
+                .tex_coord = undefined,
+                .color = tail_colour,
+                .position = .{ .x = x, .y = state.snek.Pos.y + (types.grid_size) - h },
+            };
+
+            try vertices.append(allocator, vertex_l);
+            try vertices.append(allocator, vertex_r);
+        },
+        .North, .South => {
+            const y = state.snek.Pos.y + (types.grid_size / 2.0);
+            const w = (types.grid_size - sw) / 2.0;
+
+            const vertex_l: sdl.render.Vertex = .{
+                .tex_coord = undefined,
+                .color = tail_colour,
+                .position = .{ .x = state.snek.Pos.x + w, .y = y },
+            };
+
+            const vertex_r: sdl.render.Vertex = .{
+                .tex_coord = undefined,
+                .color = tail_colour,
+                .position = .{ .x = state.snek.Pos.x + types.grid_size - w, .y = y },
+            };
+
+            try vertices.append(allocator, vertex_l);
+            try vertices.append(allocator, vertex_r);
+        },
+    }
+
+    while (segments_drawn < tl - 1) : (segments_drawn += 1) {
         const percent_drawn = @as(f32, @floatFromInt(tl - segments_drawn)) / @as(f32, @floatFromInt(tl));
         const min_width = types.grid_size / 3.0;
-        const max_width = types.grid_size - 4.0;
+        const max_width = types.grid_size - 10.0;
 
         snake_width = min_width + (max_width - min_width) * percent_drawn;
 
@@ -165,7 +207,7 @@ fn draw_tails(allocator: std.mem.Allocator, renderer: *const sdl.render.Renderer
                     .deg = 90.0,
                     .pos = node.Pos,
                     .iterations = arc_iter,
-                    .translate = .{ .x = 0.0, .y = 0.0 },
+                    .translate = .{ .x = types.grid_size, .y = 0.0 },
                     .allocator = allocator,
                     .arr = &vertices,
                 });
@@ -175,7 +217,7 @@ fn draw_tails(allocator: std.mem.Allocator, renderer: *const sdl.render.Renderer
                     .deg = 0.0,
                     .pos = node.Pos,
                     .iterations = arc_iter,
-                    .translate = .{ .x = 0.0, .y = types.grid_size },
+                    .translate = .{ .x = 0.0, .y = 0.0 },
                     .allocator = allocator,
                     .arr = &vertices,
                 });
@@ -185,7 +227,7 @@ fn draw_tails(allocator: std.mem.Allocator, renderer: *const sdl.render.Renderer
                     .deg = 180.0,
                     .pos = node.Pos,
                     .iterations = arc_iter,
-                    .translate = .{ .x = types.grid_size, .y = 0.0 },
+                    .translate = .{ .x = types.grid_size, .y = types.grid_size },
                     .allocator = allocator,
                     .arr = &vertices,
                 });
@@ -195,7 +237,7 @@ fn draw_tails(allocator: std.mem.Allocator, renderer: *const sdl.render.Renderer
                     .deg = 270.0,
                     .pos = node.Pos,
                     .iterations = arc_iter,
-                    .translate = .{ .x = types.grid_size, .y = types.grid_size },
+                    .translate = .{ .x = 0.0, .y = types.grid_size },
                     .allocator = allocator,
                     .arr = &vertices,
                 });
@@ -205,36 +247,35 @@ fn draw_tails(allocator: std.mem.Allocator, renderer: *const sdl.render.Renderer
         i = i -% 1;
     }
 
-    // { // tail -> the last one
-    //     const tail_node = path[i +% 1];
-    //     const y = tail_node.Pos.y + (types.grid_size / 2.0);
-    //     const w = (types.grid_size - snake_width) / 2.0;
-    //
-    //     const vertex_l: sdl.render.Vertex = .{
-    //         .tex_coord = undefined,
-    //         .color = tail_colour,
-    //         .position = .{ .x = tail_node.Pos.x + w, .y = y },
-    //     };
-    //
-    //     const vertex_r: sdl.render.Vertex = .{
-    //         .tex_coord = undefined,
-    //         .color = tail_colour,
-    //         .position = .{ .x = tail_node.Pos.x + types.grid_size - w, .y = y },
-    //     };
-    //
-    //     const vertex_k: sdl.render.Vertex = .{
-    //         .tex_coord = undefined,
-    //         .color = tail_colour,
-    //         .position = .{ .x = tail_node.Pos.x + (types.grid_size / 2.0), .y = y },
-    //     };
-    //
-    //     try vertices.append(allocator, vertex_l);
-    //     try vertices.append(allocator, vertex_r);
-    //     try vertices.append(allocator, vertex_k);
-    // }
+    { // tail -> the last one
+        const tail_node = path[i -% 1];
+        const y = tail_node.Pos.y + (types.grid_size / 2.0);
+        const w = (types.grid_size - snake_width) / 2.0;
+
+        const vertex_l: sdl.render.Vertex = .{
+            .tex_coord = undefined,
+            .color = tail_colour,
+            .position = .{ .x = tail_node.Pos.x + w, .y = y },
+        };
+
+        const vertex_r: sdl.render.Vertex = .{
+            .tex_coord = undefined,
+            .color = tail_colour,
+            .position = .{ .x = tail_node.Pos.x + types.grid_size - w, .y = y },
+        };
+
+        const vertex_k: sdl.render.Vertex = .{
+            .tex_coord = undefined,
+            .color = tail_colour,
+            .position = .{ .x = tail_node.Pos.x + (types.grid_size / 2.0), .y = y },
+        };
+
+        try vertices.append(allocator, vertex_l);
+        try vertices.append(allocator, vertex_r);
+        try vertices.append(allocator, vertex_k);
+    }
 
     if (vertices.items.len > 0) {
-        try renderer.setDrawColor(.{ .a = 255, .b = 255, .g = 255, .r = 255 });
         var indices: std.ArrayList(c_int) = .empty;
         defer indices.deinit(allocator);
 
