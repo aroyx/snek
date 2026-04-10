@@ -11,6 +11,7 @@ pub const Snake = struct {
     Pos: Vec2,
     Score: u32,
     Dir: Direction,
+    HeadAngle: f32,
 
     Path: [max_body_len]PathNode,
     TailLength: u8,

@@ -13,6 +13,7 @@ pub var snek: types.Snake = .{
     .Dir = types.Direction.East,
     .TailLength = 3,
     .Path = undefined,
+    .HeadAngle = 0.0,
 };
 
 pub var food: types.Vec2 = .{

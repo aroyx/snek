@@ -81,6 +81,24 @@ pub fn update(dt: f32) !void {
         state.quit = true;
     }
 
+    // head angle calc
+    const target_angle: f32 = switch (state.snek.Dir) {
+        .North => 0.0,
+        .East => 90.0,
+        .South => 180.0,
+        .West => 270.0,
+    };
+
+    var angle_diff = target_angle - state.snek.HeadAngle;
+    if (angle_diff > 180.0) angle_diff -= 360.0;
+    if (angle_diff < -180.0) angle_diff += 360.0;
+
+    const rotation_speed = 15.0;
+    state.snek.HeadAngle += angle_diff * rotation_speed * dt;
+
+    if (state.snek.HeadAngle >= 360.0) state.snek.HeadAngle -= 360.0;
+    if (state.snek.HeadAngle < 0.0) state.snek.HeadAngle += 360.0;
+
     try record_path();
     // todo: wrap the snek around the window
 }
