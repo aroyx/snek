@@ -1,5 +1,5 @@
 # Snek
-A simple game made to learn the ins and outs of zig. This is made by a incompetent guy who never used Zig. No AI was used in the making of any of this codebase.
+A simple game made to learn the ins and outs of zig. This is made by a incompetent guy who never used Zig. No AI was used in the making of any of this codebase, exept when mentioned.
 
 ## Contributing
 I will highly appreciate any contribution that improves this project.
