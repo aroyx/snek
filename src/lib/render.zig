@@ -83,7 +83,7 @@ fn draw_grid(renderer: *const sdl.render.Renderer) !void {
     }
 }
 
-const tail_colour: sdl.pixels.FColor = .{ .a = 1.0, .r = 100.0 / 255.0, .g = 143.0 / 255.0, .b = 249.0 / 255.0 };
+const tail_colour: sdl.pixels.FColor = .{ .a = 1.0, .r = 91.0 / 255.0, .g = 123.0 / 255.0, .b = 249.0 / 255.0 };
 var snake_width: f32 = types.grid_size - 2.0;
 
 fn draw_tails(allocator: std.mem.Allocator, renderer: *const sdl.render.Renderer) !void {
